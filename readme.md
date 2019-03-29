@@ -8,10 +8,14 @@ Es wurde auch ein Display HD44780 im Schlatkasten eingebaut.
 
 Jetzt wurde das Projekt erweitert mit MQTT um in FHEM integriert zu werden.
 Also habt Spaß und nutzt das Projekt.
+
 Viele Grüße aus Schönow
 
 Weiter Infos unter install.txt
 
-Map der Verzeichnisse 
-Data/*.* -> PI /usr/script/*.*
-html/*.* -> PI /var/www/html/*.*
+Map der Verzeichnisse
+ 
+Data/ -> PI /usr/script/
+
+html/ -> PI /var/www/html/
+
