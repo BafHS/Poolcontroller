@@ -1,0 +1,4 @@
+AuthName "Pool public"
+AuthUserFile /var/wwwpasswd/.htpasswd
+AuthType Digest
+Require valid-user

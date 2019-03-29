@@ -1,0 +1,176 @@
+MySQL installieren
+
+-User
+pool_insert
+	insert,update,execute
+pool_select
+	select
+pool_delete
+	delete
+
+mysql -p -u root
+
+create database **yourDatabasename;
+
+use **yourDatabasename;
+
+
+CREATE TABLE `pooltemp` (
+ `temperaturedate` datetime NOT NULL,
+ `vorlauf` float DEFAULT NULL,
+ `ruecklauf` float DEFAULT NULL,
+ `outdoor` float DEFAULT NULL,
+ `solar` float DEFAULT NULL,
+ `schuppen` float DEFAULT NULL,
+ `automatic` decimal(1,0) NOT NULL DEFAULT '0',
+ `pumpe` decimal(1,0) NOT NULL,
+ `bypass` decimal(1,0) NOT NULL,
+ PRIMARY KEY (`temperaturedate`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+
+
+
+CREATE TABLE `poolsettings` (
+ `summer` tinyint(1) DEFAULT '0',
+ `beregnung` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+
+
+CREATE TABLE `poollog` (
+ `datum` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+ `job` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
+ `status` varchar(11) COLLATE utf8_unicode_ci NOT NULL,
+ `text` varchar(255) COLLATE utf8_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+
+CREATE TABLE `poolhistory` (
+ `datum` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+ `poolmin` float DEFAULT NULL,
+ `poolmax` float DEFAULT NULL,
+ `ruecklaufmin` float DEFAULT NULL,
+ `ruecklaufmax` float DEFAULT NULL,
+ `solarmin` float DEFAULT NULL,
+ `solarmax` float DEFAULT NULL,
+ `outdoormin` float DEFAULT NULL,
+ `outdoormax` float DEFAULT NULL,
+ `schuppenmin` float DEFAULT NULL,
+ `schuppenmax` float DEFAULT NULL,
+ `pumpentime` float DEFAULT NULL,
+ `solartime` float DEFAULT NULL,
+ `reinigentime` float DEFAULT NULL,
+ `filtertime` float DEFAULT NULL,
+ PRIMARY KEY (`datum`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+
+CREATE TABLE `poolstatus` (
+ `boottime` varchar(20) COLLATE utf8_swedish_ci DEFAULT NULL,
+ `pool` float DEFAULT NULL,
+ `poolmax` float DEFAULT NULL,
+ `poolmin` float DEFAULT NULL,
+ `outdoor` float DEFAULT NULL,
+ `outdoormax` float DEFAULT NULL,
+ `outdoormin` float DEFAULT NULL,
+ `solar` float DEFAULT NULL,
+ `solarmax` float DEFAULT NULL,
+ `solarmin` float DEFAULT NULL,
+ `schuppen` float DEFAULT NULL,
+ `schuppenmax` float DEFAULT NULL,
+ `schuppenmin` float DEFAULT NULL,
+ `ruecklauf` float DEFAULT NULL,
+ `ruecklaufmax` float DEFAULT NULL,
+ `ruecklaufmin` float DEFAULT NULL,
+ `pumpe` int(11) DEFAULT NULL,
+ `bypass` int(11) DEFAULT NULL,
+ `reinigen` int(11) DEFAULT NULL,
+ `filtern` int(11) DEFAULT NULL,
+ `helligkeit` float DEFAULT NULL,
+ `druckwasser0` float DEFAULT NULL,
+ `druckwasser1` float DEFAULT NULL,
+ `druckwasser2` float DEFAULT NULL,
+ `druckwasser3` float DEFAULT NULL,
+ `druckwasser4` float DEFAULT NULL,
+ `druckwasser5` float DEFAULT NULL,
+ `druckwasser6` float DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci
+
+
+
+**Proceduren
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `checkanalog`(IN `sensor` TEXT, IN `wert` FLOAT)
+begin
+
+set @Test = 'on';
+
+set @Value = wert;
+set @Name = sensor;
+
+
+set @Abfrage = concat('update poolstatus set ', @Name ,'= ?');
+prepare stmt from @Abfrage;
+execute stmt using @Value;
+
+set @debugtext = concat('Sensor ',@Name, ' Wert ',@value);
+if @Test = 'on' then 
+select @debugtext;
+end if;
+
+
+deallocate prepare stmt;
+
+end$$
+
+
+
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `checktemp`(IN `sensor` TEXT, IN `wert` FLOAT)
+begin
+
+set @Test = 'on';
+
+set @Value = wert;
+set @Name = sensor;
+set @Namemax = concat(sensor,'max');
+set @Namemin = concat(sensor,'min');
+
+
+set @Abfrage = concat('update poolstatus set ', @Name ,'= ?');
+prepare stmt from @Abfrage;
+execute stmt using @Value;
+
+set @debugtext = concat('Sensor ',@Name, ' Wert ',@value);
+if @Test = 'on' then 
+select @debugtext;
+end if;
+
+set @Abfrage = concat('select ', @Namemin ,',', @Namemax ,' into @minwert,@maxwert from poolstatus');
+prepare stmt from @Abfrage;
+execute stmt;
+set @debugtext = concat('Nach Abfrage ',@Abfrage,' Namemax ',@Namemax,' Wertmax ',@maxwert);
+if @Test = 'on' then 
+select @debugtext;
+end if;
+
+if @value > @maxwert or @maxwert is null then
+ set @Abfrage = concat('update poolstatus set ', @Namemax ,'= ?');
+prepare stmt from @Abfrage;
+execute stmt using @Value;
+set @debugtext = concat(' Update MAX auf ',@Value);
+if @Test = 'on' then select @debugtext;
+end if;
+end if;
+
+if @value < @minwert or @minwert is null then
+   set @Abfrage = concat('update poolstatus set ', @Namemin ,'= ?');
+prepare stmt from @Abfrage;
+execute stmt using @Value;
+set @debugtext = concat(' Update MIN auf ',@Value);
+if @Test = 'on' then select @debugtext;
+end if;
+end if;
+
+deallocate prepare stmt;
+
+end$$;
+

@@ -1,0 +1,375 @@
+Volle Größe SD Karte
+	http://www.fabiandeitelhoff.de/2014/07/raspberry-pi-speicherplatz-der-sd-karte-ausnutzen/
+
+0. Globale Einstellung
+	sudo raspi-config
+	sudo apt-get update
+	sudo apt-get dist-upgrade
+
+	Ändere zeitzone und Regional
+1. Static IP
+	https://www.elektronik-kompendium.de/sites/raspberry-pi/1912151.htm
+	sudo nano /etc/dhcpcd.conf
+	hinzufügen
+	   interface eth0
+	   static ip_address=192.168.x.x/24
+	   static routers=192.168.x.x
+	   static domain_name_servers=192.168.x.x
+    sudo reboot
+
+2. Hostname ändern
+	sudo nano /etc/hostname
+	sudo /etc/init.d/hostname.sh
+	sudo reboot
+
+3. Änderung Kennwort
+3.1 ür pi
+	sudo passwd pi
+3.2 für root
+	sudo passwd root
+	Änderung SSH Zugriff
+		nano /etc/ssh/sshd_config
+		suche Block
+			# Authentication:
+ 			LoginGraceTime 120
+ 			PermitRootLogin without-password
+ 			StrictModes yes
+		ändern in
+			PermitRootLogin no
+		sudo service sshd restart besser als (shutdown -r now)
+		http://www.forum-raspberrypi.de/Thread-der-pi-winscp-und-rootrechte
+3.3 Verzeichnis erstellen
+	sudo mkdir /usr/script
+	sudo chmod 777 /usr/script
+
+3.4 Crontab Output
+	Install für Mail und Crontab
+		siehe hier http://raspberrypi.stackexchange.com/questions/27984/cron-error-with-python-script
+	sudo apt-get install postfix
+
+
+4. Installation MySQL, PHP, myphpadmin, apache
+	http://www.forum-raspberrypi.de/Thread-tutorial-raspberry-pi-als-webserver-phpmyadmin-installation
+	http://www.forum-raspberrypi.de/Thread-tutorial-raspberry-pi-als-webserver-mysql-installation
+	http://www.it-adviser.net/raspberry-pi-lamp-apache-webserver-mit-php-und-mysql/#MySQLDatenbank-installieren
+
+4.1	Apache
+	sudo apt-get update
+	sudo apt-get install apache2
+	test http://192.168.x.x
+
+	Deutsche Umlaute
+	Change 
+		nano /etc/apache2/apache2.conf
+	Add 
+		AddDefaultCharset UTF-8
+	Restart 
+		/etc/init.d/apache2 restart  
+4.1.1	User Access Control
+	#http://www.webmaster-imho.de/webspace-hosting/auth-digest-apache/
+	#http://unixetc.co.uk/2014/08/23/simple-picture-gallery-on-raspberry-pi/
+
+		sudo a2enmod auth_digest
+		sudo mkdir /var/wwwpasswd
+		sudo htdigest -c /var/wwwpasswd/.htpasswd "Pool public" pool
+		sudo htdigest /var/wwwpasswd/.htpasswd "Pool public" admin 
+		sudo htdigest /var/wwwpasswd/.htpasswd "Pool admin" admin 
+
+		sudo nano /var/www/html/????/.htaccess
+		Add
+			AuthUserFile /var/wwwpasswd/.htpasswd
+			AuthName "Pool public"
+			AuthType Digest
+			require valid-user
+
+		sudo nano /etc/apache2/sites-available/000-default.conf
+		add
+        <Directory />
+                Options FollowSymLinks
+                AllowOverride AuthConfig
+		#Redirect Public
+                RewriteEngine On
+                RedirectMatch ^/$ /public/
+         </Directory>
+
+        <Directory /var/www/html/test3>
+                #Satisfy Any
+                AllowOverride AuthConfig
+                allow from all
+        </Directory>
+        <Directory /var/www/html/prod>
+                Order deny,allow
+                Deny from all
+                Allow from 192.168.0.0/255.255.0.0
+                Satisfy Any
+                AllowOverride AuthConfig
+        </Directory>
+        <Directory /var/www/html/script>
+                Order deny,allow
+                Deny from all
+                Allow from 192.168.0.0/255.255.0.0
+                Satisfy Any
+                AllowOverride AuthConfig
+        </Directory>
+        <Directory /var/www/html/admin>
+                Order deny,allow
+                Deny from all
+                Allow from 192.168.0.0/255.255.0.0
+                Satisfy Any
+                AllowOverride AuthConfig
+         </Directory>
+
+	#Wenn Lets Encrypt aktiv ist, denke an die SSL Config
+		sudo nano /etc/apache2/sites-available/000-default-le-ssl.conf
+        		SSLEngine on
+		        SSLCertificateFile      /etc/letsencrypt/live/DEIN:SERVER:IP/fullchain.pem
+		        SSLCertificateKeyFile /etc/letsencrypt/live/DEIN:SERVER:IP/privkey.pem
+		        ServerName DEIN:SERVER:IP
+		        ServerAdmin webmaster@localhost
+		        documentRoot /var/www/html
+		        <Directory />
+		                Options FollowSymLinks
+		                AllowOverride AuthConfig
+		                RewriteEngine On
+		                RedirectMatch ^/$ /public/
+		        </Directory>
+		        <Directory /var/www/html/prod>
+		                Order deny,allow
+		                Deny from all
+		                Allow from 192.168.0.0/255.255.0.0
+		                Satisfy Any
+		                AllowOverride AuthConfig
+		        </Directory>
+		        <Directory /var/www/html/script>
+		                Order deny,allow
+		                Deny from all
+		                Allow from 192.168.0.0/255.255.0.0
+		                Satisfy Any
+		                AllowOverride AuthConfig
+		        </Directory>
+		        <Directory /var/www/html/admin>
+		                Order deny,allow
+		                Deny from all
+		                Allow from 192.168.0.0/255.255.0.0
+		                Satisfy Any
+		                AllowOverride AuthConfig
+		         </Directory>
+		Kontrolle
+			apachectl -M
+		restart
+			sudo /etc/init.d/apache2 restart
+		relod config
+			sudo /etc/init.d/apache2 reload	
+
+4.1.2 SSL mit Lets Encyprt
+	https://tutorials-raspberrypi.de/raspberry-pi-ssl-zertifikat-kostenlos-mit-lets-encrypt-erstellen/
+	https://jankarres.de/2015/12/lets-encrypt-kostenloses-ssltls-zertifikat-erstellen/
+	https://www.karl-deutsch.at/linux_apache2_ssl_https_letsencrypt_zertifikat.html
+
+	./letsencrypt-auto -d DEIN:SERVER:IP  --redirect -m admin  --apache
+	./letsencrypt-auto certonly --rsa-key-size 4096 -d DEIN:SERVER:IP  --redirect -m thorben@bosewitz.de  --apache
+
+	Test
+	https://www.ssllabs.com/ssltest/analyze.html?d=DEIN:SERVER:IP
+
+	Crontab
+	@monthly /opt/letsencrypt/letsencrypt-auto --renew certonly -d DEIN:SERVER:IP && sudo /etc/init.d/apache2 reload		
+
+4.2	PHP
+	sudo apt-get install php5
+	sudo nano /var/www/html/phpinfo.php
+		<?php
+		phpinfo();
+		?>
+
+
+	makedir /usr/script
+	nano /usr/script/cputemp.php
+#!/usr/bin/php
+<?php
+ exec("cat /sys/class/thermal/thermal_zone0/temp",$cputemp);
+ $cputemp = $cputemp[0] / 1000;
+ $cputemp1 = round($cputemp,1); 
+ echo "CPU Temperatur betrÃ¤gt $cputemp1 Â°Celsius",chr(10);
+ ?>
+
+4.3 	MySQL
+	apt-get install mysql-server mysql-client php5-mysql
+
+	sudo /etc/init.d/mysql restart 
+
+
+	Test mit
+		mysql -p -u root
+	nano /etc/mysql/my.cnf
+	Ändern des SQL Zugriffs für alle NIC
+		bind-address            = 127.0.0.1
+		auf
+		bind-address            = 0.0.0.0
+	nicht wundern, Zugriff von extern nicht möglich :-)
+	Neuer User
+		CREATE USER 'pool'@'localhost' IDENTIFIED BY 'pool';
+		GRANT ALL PRIVILEGES ON MY_DATABASE_NAME.* TO 'pool'@'%' IDENTIFIED BY 'pool';
+		GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root';
+
+		flush privileges;
+
+	Ändern der IP Adresse
+		nano /etc/mysql/my.cnf  
+			bind-address =  192.168.x.x
+	Starten
+		/etc/init.d/mysql start
+
+	uninstall MySQL
+		sudo apt-get remove mysql-server mysql-client mysql-common
+		sudo apt-get purge mysql-server mysql-client mysql-common
+		sudo apt-get autoremove
+		sudo apt-get remove --purge mysql\*
+
+4.4	phpMyAdmin
+	sudo apt-get install apache2 php5 libapache2-mod-php5
+	sudo apt-get install phpmyadmin
+
+4.5 	User einrichten
+	https://leanpub.com/RPiMRE/read#leanpub-auto-allow-access-to-the-database-remotely
+		User	pool_select	Password xx
+		User	pool_insert	Password xx
+
+4.6 python
+	Wichtig SPI einschalten
+	http://www.raspberrypi-spy.co.uk/2014/08/enabling-the-spi-interface-on-the-raspberry-pi/
+
+	Install pyton
+	http://raspberry.io/wiki/how-to-get-python-on-your-raspberrypi/
+	Python2
+		sudo apt-get install python-dev
+		sudo apt-get install python-rpi.gpio
+		sudo apt-get install python-mysqldb
+
+	spidev install
+		sudo su
+		apt-get update
+		#apt-get install git-core python-dev
+		apt-get install python-pip
+		pip install spidev
+		sudo pip install psutil
+	mysql-connector 
+	http://www.forum-raspberrypi.de/Thread-tutorial-python-und-mysql-mysql-connector-python
+	#mysql-connector-python-2.1.4.tar.gz
+
+		wget http://dev.mysql.com/get/Downloads/Connector-Python/mysql-connector-python-2.1.4.tar.gz
+		sudo gunzip mysql-connector-python-2.1.4.tar.gz
+		sudo tar xf mysql-connector-python-2.1.4.tar
+		cd mysql-connector-python-2.1.4
+		sudo python setup.py install
+	Install Zeitzone
+		 #sudo easy_install --upgrade pytz
+	Nicht notwendig stelle Zei
+	Thema Mail
+		http://www.gtkdb.de/index_31_2297.html
+
+
+5. Erzeuge DB
+	siehe install-MySQL.txt
+6. PHP installieren
+	http://www.forum-raspberrypi.de/Thread-tutorial-raspberry-pi-als-webserver-php-5-installation
+	sudo apt-get install php5
+	Module:
+	sudo apt-get install libapache2-mod-php5 libapache2-mod-perl2 php5 php5-cli php5-common php5-curl php5-dev php5-gd php5-imap php5-ldap php5-mhash php5-mysql php5-odbc
+
+7. DS18B20
+	http://projects.privateeyepi.com/home/temperature-sensor-project-using-ds18b20
+	sudo modprobe wire
+	sudo modprobe w1_gpio
+	sudo modprobe w1_therm
+	
+	änderung config
+	sudo nano /boot/config.txt 
+	#fuer DS18B20
+	dtoverlay=w1-gpio,gpiopin=25  
+
+	GPIO 25 = PIN22
+
+	Änderung 
+	# /etc/modules
+	w1-gpio pullup=1
+	w1-therm
+
+
+	Change
+		nano /boot/config.txt
+		Add
+			dtoverlay=w1-gpio,gpiopin=25
+	Reboot
+	Kontrolle mit
+		ls /sys/bus/w1/devices
+
+	Change
+		nano /etc/modules 
+	
+	Anschlüsse
+		rot = 3,3v
+		sw  = GND
+		Gelb = Data
+
+	Verlängerung
+		rot -> weiß
+		gelb -> gelb
+		schwarz -> braun
+
+8. Mail senden?
+	http://iqjar.com/jar/sending-emails-from-the-raspberry-pi/
+	apt-get update
+	apt-get install ssmtp
+	apt-get install mailutils
+
+
+	nano /etc/ssmtp/ssmtp.conf
+
+		#
+		# Config file for sSMTP sendmail
+		#
+		# The person who gets all mail for userids < 1000
+		# Make this empty to disable rewriting.
+		root=absender
+	
+		# The place where the mail goes. The actual machine name is required no
+		# MX records are consulted. Commonly mailhosts are named mail.domain.com
+		mailhub=smtp.strato.de:587
+
+		# Where will the mail seem to come from?
+		rewriteDomain=DOMAIN
+
+		# The full hostname
+		hostname=poolcontroller
+
+		# Are users allowed to set their own From: address?
+		# YES - Allow the user to specify their own From: address
+		# NO - Use the system generated From: address
+		FromLineOverride=YES
+
+		AuthUser=adresse
+		AuthPass=****
+		UseSTARTTLS=YES
+
+	nano /etc/ssmtp/revaliases
+
+		root:poolcontroller@domain:smtp.strato.de:587
+	
+	Test Command Line
+		echo "test text" | mail -s "test mail" empfänger
+
+9. TimeServer
+
+	Zuerst sollte die korrekte Zeitzone festgelegt werden, falls noch nicht geschehen:
+		sudo dpkg-reconfigure tzdata
+	Nun deinstallieren wir den NTP-Dienst:
+		sudo apt-get purge ntp
+	…und installieren ntpdate:
+	sudo apt-get install ntpdate
+	
+	crontab 
+	@reboot        ntpdate -s ptbtime1.ptb.de
+	0 */2 * * *    ntpdate -s ptbtime1.ptb.de
+
+

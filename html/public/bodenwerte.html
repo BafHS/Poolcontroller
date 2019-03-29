@@ -1,0 +1,295 @@
+<!DOCTYPE HTML> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+<meta name="viewport" content="initial-scale=1">
+<title>Schönow Temperatur</title> 
+<link rel="shortcut icon" href="../img/statistik.png" type="image/ico" />
+<link rel="icon" href="../img/statistik.png" type="image/ico" />
+<script src="highstock.js"></script>
+<script src="jquery-2.2.0.min.js"></script>
+
+
+<script type="text/javascript">
+      var chart;
+      $(document).ready(function() {
+         var options = {
+            chart: {
+               renderTo: 'temp',
+	       zoomType: 'x',
+               type: 'line',
+            },
+        credits: {
+	            enabled: false
+	        },
+ 	    navigator : {
+		enabled : false
+	    },
+        rangeSelector: {
+           	buttonTheme: { // styles for the buttons
+               	fill: 'none',
+               	stroke: 'none',
+               	'stroke-width': 0,
+               	r: 8,
+               	style: {
+                   		color: '#039',
+                   		fontWeight: 'bold'
+               	},
+               	states: {
+                   		hover: {
+                   		},
+                   		select: {
+                       		fill: '#039',
+	                       	style: {
+                        	    	color: 'white'
+               	       	 	}
+                   		}
+               	},
+			},
+			allButtonsEnabled:true,
+			enabled:true,
+            selected: 0,
+			inputBoxWidth: 90,
+			height: 80,
+			buttons: [{
+                        type: 'day',
+                        count: 1,
+                        text: '1 T'
+                        }, {
+					type: 'week',
+					count: 1,
+					text: '1 W'
+					}, {
+					type: 'month',
+					count: 1,
+					text: '1 M'
+					}, {
+					type: 'month',
+					count: 3,
+					text: '3 M'
+					}, {
+					type: 'all',
+					text: 'Alle'
+					}]
+            },
+            title : {
+                text : 'Thorben Knappe in Schönow'
+            },
+            subtitle : {
+                text : 'Bodenwerte'
+            },
+            legend : {
+                enabled : true
+            },
+             xAxis: {
+               	type: 'datetime',
+        	minTickInterval : 1000,
+               	title : {
+                    	text : 'Datum'},
+                events: {
+                    afterSetExtremes: function (event) {
+                        var xMin = event.min;
+                        var xMax = event.max;
+                        var ex = chart2.xAxis[0].getExtremes();
+
+
+                        if (ex.min != xMin || ex.max != xMax) chart2.xAxis[0].setExtremes(xMin, xMax, true, false);
+                    }
+                }
+
+            },
+            yAxis: {
+               title : {
+                    //text : 'Temperaturen in °C'
+					text : ''
+ 	               },
+               labels : {
+                    formatter : function() {
+                    //return this.value + ' °C'
+					return this.value
+                    }
+                }
+    	    },
+            tooltip : {
+                crosshairs : true,
+                shared : true,
+                valueSuffix : ''
+            },
+            series: [{
+               name: 'Feuchtigkeit',
+			   color: '#1a1aff', // Blau
+			   data: []
+            }, {
+               name: 'Fruchtbarkeit',
+               color: '#009900', //grün
+               data: []
+ 	    	},{
+               name: 'Sonnenlicht',
+               color: '#cc7a00',  //hellbraun	
+               data: []
+ 	    	},{
+               name: 'Batterie',
+               color: '#a300cc',  //lila
+               data: []
+             }]
+          };
+         var options1 = {
+                global : {
+                    useUTC : true,
+                 },
+            chart: {
+               renderTo: 'pumpe',
+	       zoomType: 'x',
+               type: 'line',
+            },
+            navigator : {
+                enabled : false
+            },
+            credits: {
+	            enabled: false
+	        },
+
+	    scrollbar : {
+		enabled : false
+	    },
+	    legend : {
+                enabled : true
+            },
+            rangeSelector: {
+                buttonTheme: { // styles for the buttons
+                        fill: 'none',
+                        stroke: 'none',
+                        'stroke-width': 0,
+                        r: 8,
+                        style: {
+                                color: '#039',
+                                fontWeight: 'bold'
+                        },
+                        states: {
+                                hover: {
+                                },
+                                select: {
+                                        fill: '#039',
+                                        style: {
+                                                color: 'white'
+                                        }
+                                }
+                        },
+                },
+                allButtonsEnabled:true,
+                enabled:true,
+                selected: 0,
+                inputBoxWidth: 90,
+                height: 80,
+                buttons: [{
+                        type: 'day',
+                        count: 1,
+                        text: '1 T'
+                        }, {
+                        type: 'week',
+                        count: 1,
+                        text: '1 W'
+                        }, {
+                        type: 'month',
+                        count: 1,
+                        text: '1 M'
+                        }, {
+                        type: 'month',
+                        count: 3,
+                        text: '3 M'
+                        }, {
+                        type: 'all',
+                        text: 'Alle'
+                        }]
+            },
+             title : {
+                text : ''
+            },
+             subtitle : {
+                text : 'Automatik, Pumpe und Solar Bypass'
+            },
+            xAxis: {
+               	type: 'datetime',
+        	minTickInterval : 1000,
+               	title : {
+                    	text : 'Datum'},
+               events: {
+                    afterSetExtremes: function (event) {
+                        var xMin = event.min;
+                        var xMax = event.max;
+                        
+                        var ex = chart1.xAxis[0].getExtremes();
+
+                        if (ex.min != xMin || ex.max != xMax) chart1.xAxis[0].setExtremes(xMin, xMax, true, false);
+                    }
+                }
+
+            },
+            yAxis: {
+               	title : {
+                    text : 'An/Aus'},
+		tickInterval: 1,
+		max : 1,
+		showEmpty: false
+    	    },
+            tooltip : {
+                crosshairs : true,
+                shared : true,
+                valueSuffix : ''
+            },
+	    plotOptions: {
+	    		series: {
+        		step: 'left' // or 'center' or 'right'
+		    	}
+	    },
+            series: [{
+/*               name: 'Automatik',
+               data: [],
+               zones: [{
+				   value: 0,
+				   color: '#00ff00'
+					}, {
+                   color: '#663300'
+					}]
+            },{
+*/               name: 'Pumpe',
+			   color: '#0000FF',
+               data: []
+            }, {
+               name: 'Bypass',
+               color: '#CC00FF',
+               data: []
+             }]
+          };
+
+
+         $.getJSON('bodenwerte.php', function(json) {
+            	feuchtigkeit = [];
+            	fruchtbarkeit = [];
+            	sunlight = [];
+            	battery = [];
+            $.each(json, function(key,value) {
+                   feuchtigkeit.push([value.zeit, value.feuchtigkeit]);
+                   fruchtbarkeit.push([value.zeit, value.fruchtbarkeit]);
+                   sunlight.push([value.zeit, value.sunlight]);
+                   battery.push([value.zeit, value.battery]);
+ 	     });
+            options.series[0].data = feuchtigkeit;
+            options.series[1].data = fruchtbarkeit;
+            options.series[2].data = sunlight;
+            options.series[3].data = battery;
+            chart1 = new Highcharts.StockChart(options);
+          });
+      });
+
+   </script>
+</head>
+<html>
+   <body>
+	    <div id="temp" style="width: 100%; height: 600px;">
+			<img id = "loading" src = "../img/wait.gif" alt = "Loading indicator" class="imgloading">
+	    </div>
+      	<div id="pumpe" style="width: 100%; height: 300px;"></div>
+
+
+    </body>
+</html>

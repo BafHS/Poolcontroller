@@ -1,0 +1,5 @@
+AuthUserFile /var/wwwpasswd/.htpasswd
+AuthName "Pool admin"
+AuthType Digest
+require valid-user
+

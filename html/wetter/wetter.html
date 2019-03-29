@@ -1,0 +1,161 @@
+﻿<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<!--<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>!-->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<meta http-equiv="refresh" content="2700; "/>
+<link rel="stylesheet" type="text/css" href="../css/pool-style.css"/>
+<script src="jquery.min.js"></script>
+<title>Bañero - Wetter</title>
+<style type="text/css">
+</style>
+</head>
+
+
+<body topmargin=0 leftmargin=0 onLoad="getWeather();" bgcolor=#333333>
+
+
+<div class="wetter">
+<table id=weatherdailytable class="wettertabelle" cellpadding=0 cellspacing=0>
+
+<tr class="wettertabelleStadt">
+<td id=location0d>Stadt</td>
+<td id=fcd00 colspan=2></td>
+<td id=fcd10 colspan=2></td>
+<td id=fcd20 colspan=2></td>
+<td id=fcd30 colspan=2></td>
+<td id=fcd40 colspan=2></td>
+<td id=fcd50 colspan=2></td>
+<td id=fcd60 colspan=2></td>
+<td id=fcd70 colspan=2></td>
+</tr>
+<tr class="wettertabelleIcon">
+<td id=location1d onclick="showweather();">7-Tage</td>
+<td id=fcd01></td><td id=fcd11></td>
+<td id=fcd21></td><td id=fcd31></td>
+<td id=fcd41></td><td id=fcd51></td>
+<td id=fcd61></td><td id=fcd71></td>
+<td id=fcd81></td><td id=fcd91></td>
+<td id=fcd101></td><td id=fcd111></td>
+<td id=fcd121></td><td id=fcd131></td>
+<td id=fcd141></td><td id=fcd151></td>
+</tr>
+<tr class="wettertabelleWerte">
+<td id=location2d>Temperatur_(°C)</td>
+<td id=fcd02></td> <td id=fcd12></td>
+<td id=fcd22></td> <td id=fcd32></td>
+<td id=fcd42></td> <td id=fcd52></td>
+<td id=fcd62></td> <td id=fcd72></td>
+<td id=fcd82></td> <td id=fcd92></td>
+<td id=fcd102></td><td id=fcd112></td>
+<td id=fcd122></td><td id=fcd132></td>
+<td id=fcd142></td><td id=fcd152></td>
+</tr>
+
+<tr class="wettertabelleWerte1">
+<td id=location4d>Regenrisiko_(%)</td>
+<td id=fcd04></td> <td id=fcd14></td>
+<td id=fcd24></td> <td id=fcd34></td>
+<td id=fcd44></td> <td id=fcd54></td>
+<td id=fcd64></td> <td id=fcd74></td>
+<td id=fcd84></td> <td id=fcd94></td>
+<td id=fcd104></td><td id=fcd114></td>
+<td id=fcd124></td><td id=fcd134></td>
+<td id=fcd144></td><td id=fcd154></td>
+</tr>
+
+</table><!--daily ende-->
+
+</div>
+</center>
+<script>
+
+function showweather()
+{
+   if (document.getElementById("weatherdailytable").style.display == "block")
+	{
+	 document.getElementById("weatherhourlytable").style.display = "block";
+	 document.getElementById("weatherdailytable").style.display  = "none";
+	}
+
+   else
+	{
+	 document.getElementById("weatherhourlytable").style.display = "none";
+	 document.getElementById("weatherdailytable").style.display  = "block";
+	}
+}
+
+
+
+
+function getWeather() {
+
+  jQuery(document).ready(function($) {
+  $.ajax({
+  url : 'http://api.wunderground.com/api/1e1dc5e9f65d3cea/geolookup/conditions/hourly/forecast/forecast10day/lang:DL/q/Germany/Bernau bei Berlin.json',
+//  url : 'http://api.wunderground.com/api/28e2caf77df57f6b/geolookup/conditions/daily/forecast/forecast10day/lang:DL/q/Germany/Bernau bei Berlin.json',
+  dataType : "jsonp",
+  success : function(parsed_json) {
+
+/* Aktuelle Daten */
+  var location = parsed_json['location']['city'];
+
+  if(location.length > 25) { 
+				shortlocation = location.slice(0,22);
+				shortlocation = shortlocation+'...';
+			   }
+  else { shortlocation = location;} 
+
+ document.getElementById("location0d").innerHTML = '&nbsp'+shortlocation;
+
+ 
+
+/* 7-Day forecast */
+for(k=0;k<15;k++) {
+ if(k%2 == 0) 	{
+		 var dayimg    =  parsed_json['forecast']['txt_forecast']['forecastday'][''+k+'']['icon'];
+		 var nightimg  =  parsed_json['forecast']['txt_forecast']['forecastday'][''+(k+1)+'']['icon'];
+		 var wettertext = parsed_json['forecast']['txt_forecast']['forecastday'][''+(k+1)+'']['fcttext_metric'];
+		 
+		 document.getElementById("fcd"+k+"1").innerHTML     = "<div class='imgWrap'><img src='../img/wetter/"+dayimg+".png' class='iconwetter'/><p class='imgDescription'>"+wettertext+"</p></div>";
+		 document.getElementById("fcd"+(k+1)+"1").innerHTML = "<div class='imgWrap'><img src='../img/wetter/"+nightimg+".png' class='iconwetter'/><p class='imgDescription'>"+wettertext+"</p></div>";
+
+
+		 //<center><img class='iconwetter' src=../img/wetter/"+nightimg+".png><br>";
+ 
+
+		}
+}
+
+tempfield = 0;
+humifield = 0;
+windfield = 0;
+rainfield = 0;
+popfield = 0;
+
+for(i=0;i<8;i++) {
+	var dateday   =  parsed_json['forecast']['simpleforecast']['forecastday'][''+i+'']['date']['day'];
+	var datemonth =  parsed_json['forecast']['simpleforecast']['forecastday'][''+i+'']['date']['month'];
+	var datename  =  parsed_json['forecast']['simpleforecast']['forecastday'][''+i+'']['date']['weekday_short'];
+	document.getElementById("fcd"+i+"0").innerHTML = '<center>'+datename+', '+dateday+'.'+datemonth+'.';
+
+	var daytemp   =  parsed_json['forecast']['simpleforecast']['forecastday'][''+i+'']['high']['celsius'];
+	var nighttemp =  parsed_json['forecast']['simpleforecast']['forecastday'][''+i+'']['low']['celsius'];
+	document.getElementById("fcd"+tempfield+"2").innerHTML = '<center><span style="font-size:13px;font-weight:bold;">'+daytemp+'°</span><br>'; tempfield++;
+	document.getElementById("fcd"+tempfield+"2").innerHTML = '<center><span style="font-size:13px;font-weight:bold;">'+nighttemp+'°</span><br>'; tempfield++;
+
+	var daypop    =  parsed_json['forecast']['simpleforecast']['forecastday'][''+i+'']['pop'];
+	document.getElementById("fcd"+popfield+"4").innerHTML = '<center>'+daypop+'</span><br>';popfield++;
+	document.getElementById("fcd"+popfield+"4").innerHTML = '<center>'+daypop+'</span><br>';popfield++;
+}
+
+    }
+  });
+ });
+}
+
+</script>
+
+
+</body>
+</html>

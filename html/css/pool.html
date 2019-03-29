@@ -1,0 +1,39 @@
+  				<table>
+  				<tr>
+         			<td colspan="2">
+						<div class="last-update" ><a href="../prod/temphistorie.html" target="_blank">
+							<img id="temphistory_1" src='../img/statistik.png'/><br />Temperatur Historie</a></div>
+         			</td>
+         			<td colspan="2">
+						<div class="last-update" ><a href="../prod/history.html" target="_blank">
+							<img id="temphistory_1" src='../img/statistik.png'/><br />Temperatur Durchschnitt</a></div>
+         			</td>
+         			<td colspan="2" >
+						<div class="last-update" ><a href="../wetter/fullwetter.html" target="_blank" >
+							<img id="temphistory_1" src='../img/weather.png'/><br />Wetter</a></div>
+         			</td>
+         			<td colspan="2" >
+						<div class="last-update" ><a href="../admin/index.php" target="_blank"><img  id="admin_1" src='../img/admin.png'/><br />Admin und Settings</a></div>
+         			</td>
+	                <td colspan="2">
+                        <div class="last-update" ><a href="<?php echo $page;?>">
+							<img id="reload_1" src='../img/refresh.png'/><br />Refresh</a></div>
+      	            </td>
+ 				</tr>
+ 				</table>
+ 				<table>
+		        <tr>
+<!--                   	<td><div class="disclaimerright" >Status vom: </div></td>
+		           	<td><div class="disclaimerright" >Refresh: </div></td>
+	               	<td><div class="disclaimerright" >Systemstart: </div></td>
+!-->                   	<td colspan="2"><div class="disclaimercenter" >Status vom: <?php echo $now;?></div></td>
+		           	<td colspan="2"><div class="disclaimercenter" >Refresh: <?php echo $sec;?> Sekunden</div></td>
+	               	<td colspan="2"><div class="disclaimercenter" >Systemstart: <?php echo $boottime;?></div></td>
+	            </tr>
+	            <tr>
+<!--		           	<td><div class="disclaimerright" >CPU Temperatur: </div></td>
+		        	<td><div class="disclaimerright" >Version: </div></td>
+!-->		           	<td  colspan="2"><div class="disclaimercenter" >CPU Temperatur: <?php echo $cputemp;?> Â°C</div></td>
+		        	<td colspan="2"><div class="disclaimercenter" >Version: <?php echo $version;?></div></td>
+                 	<td colspan="2"><div class="disclaimercenter" >&copy; 2016 by Thorben Knappe</div></td>
+               	</tr>
