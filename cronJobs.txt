@@ -1,0 +1,61 @@
+# aller 10 Minute zwischen 0:00 und 8:59
+*/10 0-8 * * *  sudo  /usr/bin/python  /usr/script/temperatursensor.py >/dev/null 2>&1
+# aller 2 Minute zwischen 9:00 und 18:59
+*/2 9-18 * * * /usr/bin/python /usr/script/temperatursensor.py >/dev/null 2>&1
+# aller 10 Minute zwischen 19:00 und 23:59
+*/10 19-23 * * *  sudo /usr/bin/python /usr/script/temperatursensor.py >/dev/null 2>&1
+
+#Pflanzensensor
+# Alle Stunde zwische 0:00-06:59
+0 0-6 * * *  sudo /usr/bin/python /usr/script/bodenwerte.py >/dev/null 2>&1
+#alle 30 Minuten von 7:00-21:00
+*/30 7-20 * * *  sudo /usr/bin/python /usr/script/bodenwerte.py >/dev/null 2>&1
+# Alle Stunde zwische 21:00-23:59
+0 21-23 * * *  sudo /usr/bin/python /usr/script/bodenwerte.py >/dev/null 2>&1
+
+#Solarsteuerung
+# alle 30 Minute zwischen 8:00 und 19:00 und Automatic
+#old   */30 9-18 * * * php -f  /usr/script/poolcontroller.php
+# MONTAG-FREITAG alle 60 Minute zwischen 11:00 und 18:00 und Automatic
+0 11-18 * * 1-5 /usr/script/poolcontroller.py >/dev/null 2>&1
+# SONNABEND und SONNTAG alle 60 Minute zwischen 09:00 und 18:00 und Automatic
+0 9-18 * * 6,7 /usr/script/poolcontroller.py >/dev/null 2>&1
+
+
+#Beregnung
+# taeglich 06:00 Beregnung
+00 6 * * * /usr/bin/python /usr/script/beregnung.py >/dev/null 2>&1
+# taeglich 12:00 Beregnung
+00 12 * * * /usr/bin/python  /usr/script/beregnung.py >/dev/null 2>&1
+# taeglich 18:00 Beregnung
+00 18 * * * /usr/bin/python  /usr/script/beregnung.py >/dev/null 2>&1
+
+#nur Filtern
+# täglich 12:00 filtern
+30 12 * * * /usr/bin/python /usr/script/dailypump.py >/dev/null 2>&1
+# täglich 19:30 filtern
+30 19 * * * /usr/bin/python /usr/script/dailypump.py >/dev/null 2>&1
+
+# alle 1 Stunde
+0 */1 * * *  sudo /usr/bin/python /usr/script/checkscriptrunning.py >/dev/null 2>&1
+
+# jeden Tag 0:01 Reset der Zähler
+01 0 * * *  sudo /usr/bin/python  /usr/script/newdayresetcounter.py >/dev/null 2>&1
+
+# jeden Tag 0:01 Reset der Zähler
+01 0 * * *  sudo /usr/bin/python  /usr/script/sqlresetdata.py >/dev/null 2>&1
+
+#jeden tag restart Apache Server
+01 0 * * * sudo service apache2 restart
+
+#Time Sync
+0 */2 * * *    ntpdate -s ptbtime1.ptb.de
+
+#Backup Datenbank
+0 0 1 * *  /usr/script/dbbackup.sh
+
+# beim Start wird dieser Job ausgeführt
+@reboot  sudo /usr/bin/python /usr/script/startupcontroller.py
+
+#Erneuerung des Zertifikates jeden Sonnabend 0:00
+0 0 * * 0  sudo /usr/script/certifikaterenew.sh
